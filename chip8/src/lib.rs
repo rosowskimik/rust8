@@ -1,3 +1,3 @@
-pub fn greet() {
-    println!("Hello, Chip8");
-}
+mod screen;
+
+pub use screen::{SCREEN_HEIGHT, SCREEN_WIDTH};
