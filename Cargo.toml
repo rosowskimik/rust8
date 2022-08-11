@@ -8,6 +8,10 @@ edition = "2021"
 name = "rust8"
 path = "src/main.rs"
 
+[profile.release]
+lto = true
+strip = "all"
+
 [dependencies]
 anyhow = "1.0.59"
 rust8 = { path = "./emulator" }
