@@ -72,8 +72,12 @@ impl ChipEmulator {
         self.memory.load_rom(r)
     }
 
-    pub fn set_key(&mut self, key: ChipKey) {
-        self.pressed = Some(key);
+    pub fn current_key(&self) -> Option<&ChipKey> {
+        self.pressed.as_ref()
+    }
+
+    pub fn set_key(&mut self, key: Option<ChipKey>) {
+        self.pressed = key;
     }
 
     pub fn reset(&mut self) {
@@ -240,13 +244,13 @@ impl ChipEmulator {
             }
             0xE0 => match opcode.lower() {
                 // Ex9E - SKP Vx: Skip next instruction if key with the value of Vx is pressed
-                0x9E => match self.pressed.take() {
+                0x9E => match self.pressed {
                     Some(key) if key == self.vx[opcode.x()] => next_pc += 2,
                     _ => (),
                 },
 
                 // ExA1 - SKNP Vx: Skip next instruction if key with the value of Vx is not pressed
-                0xA1 => match self.pressed.take() {
+                0xA1 => match self.pressed {
                     Some(key) if key != self.vx[opcode.x()] => next_pc += 2,
                     _ => (),
                 },
@@ -259,7 +263,7 @@ impl ChipEmulator {
                     self.vx[opcode.x()] = self.timers.delay;
                 }
                 // Fx0A - LD Vx, K: Wait for a key press, store the value of the key in Vx
-                0x0A => match self.pressed.take() {
+                0x0A => match self.pressed {
                     Some(key) => self.vx[opcode.x()] = key as u8,
                     None => return,
                 },

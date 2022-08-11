@@ -967,7 +967,7 @@ checksum = "f1382d1f0a252c4bf97dc20d979a2fdd05b024acd7c2ed0f7595d7817666a157"
 
 [[package]]
 name = "rust8"
-version = "0.1.0"
+version = "0.9.0"
 dependencies = [
  "bitvec",
  "fastrand",
@@ -975,7 +975,7 @@ dependencies = [
 
 [[package]]
 name = "rust8_frontend"
-version = "0.1.0"
+version = "0.8.0"
 dependencies = [
  "anyhow",
  "clap",

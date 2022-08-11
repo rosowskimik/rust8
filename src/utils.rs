@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     fs::File,
     io::BufReader,
     path::{Path, PathBuf},
@@ -13,7 +14,6 @@ use rust8::{
     emulator::{ChipConfig, ChipEmulator},
     keypad::ChipKey,
 };
-use std::collections::HashMap;
 use winit::{
     dpi::LogicalSize,
     event::{Event, VirtualKeyCode},
@@ -23,24 +23,24 @@ use winit::{
 use winit_input_helper::WinitInputHelper;
 
 lazy_static! {
-    static ref KEY_MAP: HashMap<VirtualKeyCode, ChipKey> = {
+    static ref KEY_MAP: HashMap<ChipKey, VirtualKeyCode> = {
         let mut m = HashMap::with_capacity(16);
-        m.insert(VirtualKeyCode::Key1, ChipKey::Key1);
-        m.insert(VirtualKeyCode::Key2, ChipKey::Key2);
-        m.insert(VirtualKeyCode::Key3, ChipKey::Key3);
-        m.insert(VirtualKeyCode::Key4, ChipKey::KeyC);
-        m.insert(VirtualKeyCode::Q, ChipKey::Key4);
-        m.insert(VirtualKeyCode::W, ChipKey::Key5);
-        m.insert(VirtualKeyCode::E, ChipKey::Key6);
-        m.insert(VirtualKeyCode::R, ChipKey::KeyD);
-        m.insert(VirtualKeyCode::A, ChipKey::Key7);
-        m.insert(VirtualKeyCode::S, ChipKey::Key8);
-        m.insert(VirtualKeyCode::D, ChipKey::Key9);
-        m.insert(VirtualKeyCode::F, ChipKey::KeyE);
-        m.insert(VirtualKeyCode::Z, ChipKey::KeyA);
-        m.insert(VirtualKeyCode::X, ChipKey::Key0);
-        m.insert(VirtualKeyCode::C, ChipKey::KeyB);
-        m.insert(VirtualKeyCode::V, ChipKey::KeyF);
+        m.insert(ChipKey::Key1, VirtualKeyCode::Key1);
+        m.insert(ChipKey::Key2, VirtualKeyCode::Key2);
+        m.insert(ChipKey::Key3, VirtualKeyCode::Key3);
+        m.insert(ChipKey::KeyC, VirtualKeyCode::Key4);
+        m.insert(ChipKey::Key4, VirtualKeyCode::Q);
+        m.insert(ChipKey::Key5, VirtualKeyCode::W);
+        m.insert(ChipKey::Key6, VirtualKeyCode::E);
+        m.insert(ChipKey::KeyD, VirtualKeyCode::R);
+        m.insert(ChipKey::Key7, VirtualKeyCode::A);
+        m.insert(ChipKey::Key8, VirtualKeyCode::S);
+        m.insert(ChipKey::Key9, VirtualKeyCode::D);
+        m.insert(ChipKey::KeyE, VirtualKeyCode::F);
+        m.insert(ChipKey::KeyA, VirtualKeyCode::Z);
+        m.insert(ChipKey::Key0, VirtualKeyCode::X);
+        m.insert(ChipKey::KeyB, VirtualKeyCode::C);
+        m.insert(ChipKey::KeyF, VirtualKeyCode::V);
         m
     };
 }
@@ -51,7 +51,6 @@ pub struct Game {
     pub emulator: ChipEmulator,
     pub rom_loaded: bool,
     pub paused: bool,
-    pub current_key: Option<VirtualKeyCode>,
 }
 
 impl Game {
@@ -62,7 +61,6 @@ impl Game {
             emulator: ChipEmulator::init(),
             rom_loaded: false,
             paused: false,
-            current_key: None,
         }
     }
 
@@ -119,14 +117,11 @@ impl Game {
             }
 
             // Normal controls
-            if let Some(key) = self.current_key {
-                if self.input.key_released(key) {
+            if let Some(chip_key) = self.emulator.current_key() {
+                if self.input.key_released(*KEY_MAP.get(chip_key).unwrap()) {
                     // Button released - recheck for key press
-                    self.current_key = None;
+                    self.emulator.set_key(None);
                     self.check_keys();
-                } else {
-                    // Button held - send key press
-                    self.emulator.set_key(*KEY_MAP.get(&key).unwrap());
                 }
             } else {
                 // No button held - check for key press
@@ -138,11 +133,10 @@ impl Game {
     }
 
     fn check_keys(&mut self) {
-        for (key, chip_key) in KEY_MAP.iter() {
+        for (chip_key, key) in KEY_MAP.iter() {
             if self.input.key_pressed(*key) {
-                self.emulator.set_key(*chip_key);
-                self.current_key = Some(*key);
-                break;
+                self.emulator.set_key(Some(*chip_key));
+                return;
             }
         }
     }
